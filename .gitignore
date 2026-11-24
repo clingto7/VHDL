@@ -1,0 +1,29 @@
+# Lattice Diamond 项目生成物
+*.dir/
+*.lpf
+*.sty
+projectmanager.cfg
+synthesis/
+implementation/
+debug_output/
+*.bak
+
+# 综合与实现输出
+*.jed
+*.bit
+*.mcs
+*.svf
+*.xcf
+*.vm6
+*.vmg
+
+# ModelSim / 仿真产物
+work/
+*.wlf
+transcript
+vsim.wcfg
+*.vcd
+modelsim.ini
+
+# 系统
+.DS_Store
