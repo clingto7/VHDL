@@ -27,21 +27,24 @@ use ieee.std_logic_1164.all;
 entity breath_engine is
 	generic (
 		PWM_PERIOD     : integer := 12000;	-- PWM 周期(时钟数)，须为 BRIGHT_LEVELS 的倍数
-		STEP_BASE_CLKS : integer := 250		-- 最快档的斜坡步进间隔(时钟数)
+		STEP_BASE_CLKS : integer := 250;	-- 最快档的斜坡步进间隔(时钟数)
+		SPEED_LEVELS   : integer := 4;		-- 呼吸速度档数
+		BRIGHT_LEVELS  : integer := 4		-- 亮度档数（取 2 的幂时除法是移位，最省资源）
 	);
 	port (
-		clk        : in  std_logic;
-		rst_n      : in  std_logic;		-- 异步复位，低有效（来自 Key3 消抖后电平）
-		key_speed  : in  std_logic;		-- Key1 按下脉冲：切换呼吸速度
-		key_bright : in  std_logic;		-- Key4 按下脉冲：切换最大亮度
-		pwm_out    : out std_logic		-- '1' = 点亮时段（顶层按板上极性取反）
+		clk         : in  std_logic;
+		rst_n       : in  std_logic;	-- 异步复位，低有效（来自 Key3 消抖后电平）
+		key_speed   : in  std_logic;	-- Key1 按下脉冲：切换呼吸速度
+		key_bright  : in  std_logic;	-- Key4 按下脉冲：切换最大亮度
+		pwm_out     : out std_logic;	-- '1' = 点亮时段（顶层按板上极性取反）
+		-- 档位与斜坡方向输出，供档位数码管显示（独创性功能）
+		speed_tier  : out integer range 0 to SPEED_LEVELS - 1;
+		bright_tier : out integer range 0 to BRIGHT_LEVELS - 1;
+		ramp_dir    : out std_logic		-- '1' = 变亮段（用作 DP 心跳）
 	);
 end entity breath_engine;
 
 architecture rtl of breath_engine is
-
-	constant SPEED_LEVELS  : integer := 4;	-- 速度档数
-	constant BRIGHT_LEVELS : integer := 4;	-- 亮度档数（取 2 的幂时除法是移位，最省资源）
 
 	-- 呼吸速度档位 0..SPEED_LEVELS-1：板级默认 0.5s / 1s / 1.5s / 2s，默认第 2 档（1s）
 	-- 亮度档位 0..BRIGHT_LEVELS-1：板级默认 100% / 75% / 50% / 25%，默认第 1 档（100%）
@@ -137,5 +140,10 @@ begin
 	end process pwm_proc;
 
 	pwm_out <= '1' when pwm_cnt < duty else '0';
+
+	-- 档位与方向直接引出（纯连线，无额外逻辑）
+	speed_tier  <= speed_idx;
+	bright_tier <= bright_idx;
+	ramp_dir    <= ramp_up;
 
 end architecture rtl;

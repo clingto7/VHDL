@@ -49,6 +49,12 @@ architecture sim of tb_breathing_led is
 	signal key3     : std_logic := '1';
 	signal key4     : std_logic := '1';
 	signal led8     : std_logic;
+	signal seg1     : std_logic_vector(0 to 6);
+	signal seg2     : std_logic_vector(0 to 6);
+	signal dp1      : std_logic;
+	signal dp2      : std_logic;
+	signal dig1     : std_logic;
+	signal dig2     : std_logic;
 	signal sim_done : boolean := false;
 
 	-- 监视器输出
@@ -69,7 +75,13 @@ begin
 			key1   => key1,
 			key3   => key3,
 			key4   => key4,
-			led8   => led8
+			led8   => led8,
+			seg1   => seg1,
+			seg2   => seg2,
+			dp1    => dp1,
+			dp2    => dp2,
+			dig1   => dig1,
+			dig2   => dig2
 		);
 
 	clk_gen : process
@@ -161,6 +173,36 @@ begin
 			wait for 1 ms;
 		end procedure glitch_key;
 
+		-- 数码管段码（TB 侧独立定义, 与 mode_display 的表一致, 0..6 = a..g）
+		constant SEG_1    : std_logic_vector(0 to 6) := "0110000";
+		constant SEG_2    : std_logic_vector(0 to 6) := "1101101";
+		constant SEG_3    : std_logic_vector(0 to 6) := "1111001";
+		constant SEG_4    : std_logic_vector(0 to 6) := "0110011";
+		constant SEG_DASH : std_logic_vector(0 to 6) := "0000001";
+
+		-- 两位数码管内容检查
+		procedure check_digits(l, r : std_logic_vector(0 to 6); name : string) is
+		begin
+			check(seg1 = l and seg2 = r, name & ": 7-seg digits as expected");
+		end procedure check_digits;
+
+		-- DP2 心跳: 一个呼吸周期内变亮/变暗各一次, 数一个周期内 DP2 上升沿
+		procedure check_heartbeat(name : string) is
+			variable edges : integer := 0;
+			variable last  : std_logic;
+		begin
+			last := dp2;
+			for i in 1 to 310 loop	-- 31ms, 0.1ms 步进 (最慢观察周期 15ms)
+				wait for 0.1 ms;
+				if dp2 = '1' and last = '0' then
+					edges := edges + 1;
+				end if;
+				last := dp2;
+			end loop;
+			check(edges >= 1 and edges <= 4,
+				name & ": DP2 heartbeat rising edges in 31ms = " & integer'image(edges));
+		end procedure check_heartbeat;
+
 		-- 清掉峰值记录
 		procedure clear_peak is
 		begin
@@ -223,13 +265,16 @@ begin
 		end procedure check_peak;
 
 		-- 按下 Key3 再松开, 检查复位生效:
-		-- 松开被识别后 LED 应先保持熄灭 60us (duty 从 0 重新爬升), 随后亮度回到 100%
+		-- 按住被识别后两管显示 '--'; 松开被识别后 LED 先保持熄灭 60us
+		-- (duty 从 0 重新爬升), 随后亮度回到 100%、显示回默认档
 		procedure check_reset(name : string) is
 			variable t_rel  : time;
 			variable off_ok : boolean := true;
 		begin
 			key3 <= '0';
-			wait for 2.5 ms;
+			wait for 1.2 ms;	-- 按住经消抖被识别 (>1ms)
+			check_digits(SEG_DASH, SEG_DASH, name & ": reset held");
+			wait for 1.3 ms;
 			key3 <= '1';
 			wait for 1 ms + 10 * CLK_PERIOD;	-- 松开经消抖被识别
 			t_rel := now;
@@ -240,6 +285,7 @@ begin
 				wait for 1 us;
 			end loop;
 			check(off_ok, name & ": breathing restarts from fully dark after reset");
+			check_digits(SEG_2, SEG_1, name & ": display back to default tiers");
 			check_peak(100, name & ": brightness 100% after reset");
 		end procedure check_reset;
 
@@ -252,6 +298,9 @@ begin
 		report "T0: power-up, no key pressed";
 		check_peak(100, "T0a default brightness reaches full duty after power-up");
 		check_cycle(CYCLE_1S, "T0b default breath cycle 10ms after power-up (board: 1s)");
+		check_digits(SEG_2, SEG_1, "T0c display shows speed tier 2, brightness tier 1 at power-up");
+		check(dig1 = '0' and dig2 = '0' and dp1 = '0',
+			"T0d digit selects enabled, dp1 off");
 
 		-- T1: Key3 复位, 应回默认档并从全灭重新呼吸
 		report "T1: reset (Key3) press and release";
@@ -262,28 +311,34 @@ begin
 		report "T2: pressing Key1 (speed -> 1.5s)";
 		press_key(key1);
 		check_cycle(CYCLE_1P5S, "T2 breath cycle 15ms after Key1 (board: 1.5s)");
+		check_digits(SEG_3, SEG_1, "T2 display shows speed tier 3 (1.5s)");
+		check_heartbeat("T2 DP2 heartbeat at 15ms cycle");
 
 		-- T5: 只给毛刺不给稳定低电平, 不应有任何切换
 		report "T5: glitch-only presses on Key4 (should be filtered)";
 		glitch_key(key4);
 		check_peak(100, "T5a brightness unchanged by glitch-only presses");
 		check_cycle(CYCLE_1P5S, "T5b speed unchanged by glitch-only presses");
+		check_digits(SEG_3, SEG_1, "T5c display unchanged by glitch-only presses");
 
 		-- T3/T6/T7: Key4 依次切到 75% / 50% / 25%, 周期应保持 15ms 不变
 		report "T3: pressing Key4 (brightness -> 75%)";
 		press_key(key4);
 		check_peak(75, "T3a peak duty 75% after Key4");
 		check_cycle(CYCLE_1P5S, "T3b breath cycle still 15ms at 75%");
+		check_digits(SEG_3, SEG_2, "T3c display shows brightness tier 2");
 
 		report "T6: pressing Key4 (brightness -> 50%)";
 		press_key(key4);
 		check_peak(50, "T6a peak duty 50% after Key4");
 		check_cycle(CYCLE_1P5S, "T6b breath cycle still 15ms at 50%");
+		check_digits(SEG_3, SEG_3, "T6c display shows brightness tier 3");
 
 		report "T7: pressing Key4 (brightness -> 25%)";
 		press_key(key4);
 		check_peak(25, "T7a peak duty 25% after Key4");
 		check_cycle(CYCLE_1P5S, "T7b breath cycle still 15ms at 25%");
+		check_digits(SEG_3, SEG_4, "T7c display shows brightness tier 4");
 
 		-- T4: Key3 复位, 从 25% 亮度状态回默认档
 		report "T4: pressing Key3 (reset to defaults)";

@@ -22,14 +22,23 @@ entity breathing_led_top is
 	generic (
 		PWM_PERIOD     : integer := 12000;	-- 板级默认：1kHz PWM
 		STEP_BASE_CLKS : integer := 250;	-- 板级默认：呼吸周期 0.5/1/1.5/2s
-		DEBOUNCE_MS    : integer := 40		-- 板级默认：40ms 消抖
+		DEBOUNCE_MS    : integer := 40;		-- 板级默认：40ms 消抖
+		SPEED_LEVELS   : integer := 4;		-- 呼吸速度档数（改档数只改这里）
+		BRIGHT_LEVELS  : integer := 4		-- 亮度档数
 	);
 	port (
 		clk12m : in  std_logic;
 		key1   : in  std_logic;
 		key3   : in  std_logic;
 		key4   : in  std_logic;
-		led8   : out std_logic
+		led8   : out std_logic;
+		-- 档位显示（独创性功能）：核心板双 7 段数码管
+		seg1   : out std_logic_vector(0 to 6);	-- 左管段 a..g，高有效
+		seg2   : out std_logic_vector(0 to 6);	-- 右管段 a..g，高有效
+		dp1    : out std_logic;
+		dp2    : out std_logic;					-- 右管 DP = 呼吸心跳
+		dig1   : out std_logic;					-- 位选，低有效，恒选通
+		dig2   : out std_logic
 	);
 end entity breathing_led_top;
 
@@ -39,6 +48,9 @@ architecture rtl of breathing_led_top is
 	signal key4_pressed : std_logic;	-- Key4 按下脉冲
 	signal key3_level   : std_logic;	-- Key3 消抖后电平，用作复位
 	signal pwm_out      : std_logic;	-- 高有效点亮时段
+	signal speed_tier   : integer range 0 to SPEED_LEVELS - 1;
+	signal bright_tier  : integer range 0 to BRIGHT_LEVELS - 1;
+	signal ramp_dir     : std_logic;
 
 begin
 
@@ -84,14 +96,39 @@ begin
 	u_engine : entity work.breath_engine
 		generic map (
 			PWM_PERIOD     => PWM_PERIOD,
-			STEP_BASE_CLKS => STEP_BASE_CLKS
+			STEP_BASE_CLKS => STEP_BASE_CLKS,
+			SPEED_LEVELS   => SPEED_LEVELS,
+			BRIGHT_LEVELS  => BRIGHT_LEVELS
 		)
 		port map (
-			clk        => clk12m,
-			rst_n      => key3_level,
-			key_speed  => key1_pressed,
-			key_bright => key4_pressed,
-			pwm_out    => pwm_out
+			clk         => clk12m,
+			rst_n       => key3_level,
+			key_speed   => key1_pressed,
+			key_bright  => key4_pressed,
+			pwm_out     => pwm_out,
+			speed_tier  => speed_tier,
+			bright_tier => bright_tier,
+			ramp_dir    => ramp_dir
+		);
+
+	-- 独创性功能：双数码管显示速度档/亮度档，复位显示 --，DP2 心跳
+	u_display : entity work.mode_display
+		generic map (
+			SPEED_LEVELS  => 4,
+			BRIGHT_LEVELS => 4
+		)
+		port map (
+			clk         => clk12m,
+			rst_n       => key3_level,
+			speed_tier  => speed_tier,
+			bright_tier => bright_tier,
+			heart       => ramp_dir,
+			seg1        => seg1,
+			seg2        => seg2,
+			dp1         => dp1,
+			dp2         => dp2,
+			dig1        => dig1,
+			dig2        => dig2
 		);
 
 	-- 板上 LED 低电平点亮，输出取反

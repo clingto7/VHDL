@@ -3,11 +3,16 @@
 #
 # Syntax kept identical to the constraint files of earlier groups' projects
 # that were built on this board (LOCATE / IOBUF only).
-# Pin assignments per the course requirements (pin table):
+#
+# Core pins (course requirements pin table):
 #   clk12m = C1 (12MHz), key1 = L14, key3 = M14, key4 = N14, led8 = P9
+# 7-seg display 1 (left, DIG1 = C9):  A1..G1 = A10 C11 F2 E1 E2 A9 B9, DP1 = F1
+# 7-seg display 2 (right, DIG2 = A12): A2..G2 = C12 B14 J1 H1 H2 B12 A11, DP2 = K1
+#
 # Keys have 10K external pull-ups on the core board (see schematic),
 # so no internal pull is enabled here.
 # LED anode goes to 3.3V through 470R: the LED lights on a low level.
+# Segments are active high, digit selects (DIG) active low (common cathode).
 # ============================================================
 BLOCK RESETPATHS ;
 BLOCK ASYNCPATHS ;
@@ -18,8 +23,46 @@ LOCATE COMP "key3" SITE "M14" ;
 LOCATE COMP "key4" SITE "N14" ;
 LOCATE COMP "led8" SITE "P9" ;
 
+LOCATE COMP "seg1[0]" SITE "A10" ;
+LOCATE COMP "seg1[1]" SITE "C11" ;
+LOCATE COMP "seg1[2]" SITE "F2" ;
+LOCATE COMP "seg1[3]" SITE "E1" ;
+LOCATE COMP "seg1[4]" SITE "E2" ;
+LOCATE COMP "seg1[5]" SITE "A9" ;
+LOCATE COMP "seg1[6]" SITE "B9" ;
+LOCATE COMP "dp1" SITE "F1" ;
+LOCATE COMP "dig1" SITE "C9" ;
+
+LOCATE COMP "seg2[0]" SITE "C12" ;
+LOCATE COMP "seg2[1]" SITE "B14" ;
+LOCATE COMP "seg2[2]" SITE "J1" ;
+LOCATE COMP "seg2[3]" SITE "H1" ;
+LOCATE COMP "seg2[4]" SITE "H2" ;
+LOCATE COMP "seg2[5]" SITE "B12" ;
+LOCATE COMP "seg2[6]" SITE "A11" ;
+LOCATE COMP "dp2" SITE "K1" ;
+LOCATE COMP "dig2" SITE "A12" ;
+
 IOBUF PORT "clk12m" IO_TYPE=LVCMOS33 ;
 IOBUF PORT "key1" IO_TYPE=LVCMOS33 ;
 IOBUF PORT "key3" IO_TYPE=LVCMOS33 ;
 IOBUF PORT "key4" IO_TYPE=LVCMOS33 ;
 IOBUF PORT "led8" IO_TYPE=LVCMOS33 ;
+IOBUF PORT "seg1[0]" IO_TYPE=LVCMOS33 ;
+IOBUF PORT "seg1[1]" IO_TYPE=LVCMOS33 ;
+IOBUF PORT "seg1[2]" IO_TYPE=LVCMOS33 ;
+IOBUF PORT "seg1[3]" IO_TYPE=LVCMOS33 ;
+IOBUF PORT "seg1[4]" IO_TYPE=LVCMOS33 ;
+IOBUF PORT "seg1[5]" IO_TYPE=LVCMOS33 ;
+IOBUF PORT "seg1[6]" IO_TYPE=LVCMOS33 ;
+IOBUF PORT "dp1" IO_TYPE=LVCMOS33 ;
+IOBUF PORT "dig1" IO_TYPE=LVCMOS33 ;
+IOBUF PORT "seg2[0]" IO_TYPE=LVCMOS33 ;
+IOBUF PORT "seg2[1]" IO_TYPE=LVCMOS33 ;
+IOBUF PORT "seg2[2]" IO_TYPE=LVCMOS33 ;
+IOBUF PORT "seg2[3]" IO_TYPE=LVCMOS33 ;
+IOBUF PORT "seg2[4]" IO_TYPE=LVCMOS33 ;
+IOBUF PORT "seg2[5]" IO_TYPE=LVCMOS33 ;
+IOBUF PORT "seg2[6]" IO_TYPE=LVCMOS33 ;
+IOBUF PORT "dp2" IO_TYPE=LVCMOS33 ;
+IOBUF PORT "dig2" IO_TYPE=LVCMOS33 ;
