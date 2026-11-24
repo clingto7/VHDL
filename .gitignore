@@ -24,6 +24,7 @@ work/
 transcript
 vsim.wcfg
 *.vcd
+*.fst
 modelsim.ini
 
 # 系统

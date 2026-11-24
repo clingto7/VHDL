@@ -1,10 +1,16 @@
 # ============================================================
-# 实验二 PWM 呼吸灯 - STEP-MXO2 V2 管脚约束
-# Diamond 中通过 "Translate Design" 前关联本 lpf 文件
-# 引脚来源见实验要求书管脚分配表:
+# Exp2 PWM breathing LED - STEP-MXO2 V2 pin constraints (Lattice Diamond)
+#
+# Syntax kept identical to the constraint files of earlier groups' projects
+# that were built on this board (LOCATE / IOBUF only).
+# Pin assignments per the course requirements (pin table):
 #   clk12m = C1 (12MHz), key1 = L14, key3 = M14, key4 = N14, led8 = P9
+# Keys have 10K external pull-ups on the core board (see schematic),
+# so no internal pull is enabled here.
+# LED anode goes to 3.3V through 470R: the LED lights on a low level.
 # ============================================================
-FREQUENCY NET "clk12m" 12.000000 MHz ;
+BLOCK RESETPATHS ;
+BLOCK ASYNCPATHS ;
 
 LOCATE COMP "clk12m" SITE "C1" ;
 LOCATE COMP "key1" SITE "L14" ;
@@ -13,7 +19,7 @@ LOCATE COMP "key4" SITE "N14" ;
 LOCATE COMP "led8" SITE "P9" ;
 
 IOBUF PORT "clk12m" IO_TYPE=LVCMOS33 ;
-IOBUF PORT "key1" IO_TYPE=LVCMOS33 PULLUP=ON ;
-IOBUF PORT "key3" IO_TYPE=LVCMOS33 PULLUP=ON ;
-IOBUF PORT "key4" IO_TYPE=LVCMOS33 PULLUP=ON ;
+IOBUF PORT "key1" IO_TYPE=LVCMOS33 ;
+IOBUF PORT "key3" IO_TYPE=LVCMOS33 ;
+IOBUF PORT "key4" IO_TYPE=LVCMOS33 ;
 IOBUF PORT "led8" IO_TYPE=LVCMOS33 ;
