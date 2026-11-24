@@ -29,3 +29,8 @@ modelsim.ini
 
 # 系统
 .DS_Store
+
+# diamond docker 构建产物与敏感文件
+rpm/
+license/
+out/
