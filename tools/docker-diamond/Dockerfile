@@ -7,7 +7,7 @@
 # questasim and micosystem segments skipped).
 #
 # License: mount a node-locked license at /work/license/license.dat and
-# run the container with --mac-address=02:50:F2:00:00:42 (see run-synth.sh
+# run the container with --mac-address=c0:c7:db:f4:1d:5f (see run-synth.sh
 # and README.md).
 FROM rockylinux:8
 
