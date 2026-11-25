@@ -3,13 +3,13 @@
 set -uo pipefail
 cd "$(dirname "$0")"
 
-if ! ls rpm/*.rpm >/dev/null 2>&1; then
+if ! ls installer/*.run >/dev/null 2>&1; then
   cat >&2 <<'EOF'
-No rpm found in rpm/.
+No installer found in installer/.
 1. Create/sign in to a Lattice account
 2. Download "Diamond 3.14 64-bit for Linux"
    https://www.latticesemi.com/en/Products/DesignSoftwareAndIP/FPGAandLDS/LatticeDiamond
-3. Drop the file into tools/docker-diamond/rpm/ (keep the original name)
+3. Drop the file into tools/docker-diamond/installer/ (keep the original name)
 EOF
   exit 1
 fi

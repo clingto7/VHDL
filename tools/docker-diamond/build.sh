@@ -15,7 +15,7 @@ ip link show eth0 | grep -o -E "link/ether [0-9a-f:]{17}"
 echo "== diamond install =="
 DIA_DIR=$(ls -d /opt/lscc/diamond/*/ | head -1)
 echo "DIAMOND_DIR=$DIA_DIR"
-ls "$DIA_DIR/bin/lin64/" | head -40
+ls "$DIA_DIR/bin/lin64/" | grep -E "diamondc|pnmain|synpute|ecd" | head
 
 cd /work/project
 
