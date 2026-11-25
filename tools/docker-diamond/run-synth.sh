@@ -7,7 +7,7 @@
 set -uo pipefail
 cd "$(dirname "$0")"
 
-MAC=c0:c7:db:f4:1d:5f
+MAC=00:0c:29:d5:14:8e
 IMG=diamond-mxo2
 
 if ! docker image inspect "$IMG" >/dev/null 2>&1; then

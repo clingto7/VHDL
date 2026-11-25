@@ -20,7 +20,7 @@
    questasim(1.1GB) 和 micosystem 段直接解包组装。若换新版本安装器，重跑
    `python3 carve.py` 并检查 `seg*.7z` 的目录映射（脚本内注释）。
 2. **license**（唯一待办）：Lattice Support → Licensing → Node-Locked License
-   （LSC-SW-NL，免费），MAC/Host ID 填 `c0:c7:db:f4:1d:5f`（容器固定 MAC，
+   （LSC-SW-NL，免费），MAC/Host ID 填 `00:0c:29:d5:14:8e`（容器固定 MAC，
    run-synth.sh 的 `--mac-address` 与之对应）。license 文件存到
    `license/license.dat`。绑容器 MAC：换电脑/重装不影响。
 
@@ -60,7 +60,7 @@ build.tcl       prj_project open -> Synthesis/Map/PAR/Export(Bitgen) -> close
 exp2.ldf        手写 Diamond 工程文件（XML，参照往届跑通的 ldf），顶层 breathing_led_top
 carve.py        从官方 .run 安装器解剖 7z 分段
 installer/      官方 .run（不入库）+ carved/ 分段（不入库）
-run-synth.sh    宿主侧包装：挂 src/constraints/license/out，固定 MAC c0:c7:db:f4:1d:5f
+run-synth.sh    宿主侧包装：挂 src/constraints/license/out，固定 MAC 00:0c:29:d5:14:8e
 build-image.sh  宿主侧镜像构建
 license/        license.dat（不入库）
 out/            综合产物（不入库）
