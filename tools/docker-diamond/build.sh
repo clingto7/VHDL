@@ -2,37 +2,38 @@
 # Headless Diamond build, runs inside the container.
 # Mount points (see run-synth.sh):
 #   /work/project  - exp2.ldf + .vhd + .lpf
-#   /work/out      - receives .jed + synthesis/implementation reports
+#   /work/out      - receives .jed/.bit + synthesis/implementation reports
 #   /work/license  - license.dat (LM_LICENSE_FILE points here)
-set -uo pipefail
+set -o pipefail
 
 OUT=/work/out
 mkdir -p "$OUT"
 
-echo "== container MAC (register node-locked license against this) =="
-ip link show eth0 | grep -o -E "link/ether [0-9a-f:]{17}"
-
-echo "== diamond install =="
-DIA_DIR=$(ls -d /opt/lscc/diamond/*/ | head -1)
-echo "DIAMOND_DIR=$DIA_DIR"
-ls "$DIA_DIR/bin/lin64/" | grep -E "diamondc|pnmain|synpute|ecd" | head
+echo "== container MAC (must match license HOSTID) =="
+cat /sys/class/net/eth0/address 2>/dev/null || true
 
 cd /work/project
 
-# Preferred: diamondc console (headless Tcl). Fallback: GUI binary under Xvfb.
-if command -v diamondc >/dev/null 2>&1; then
-  echo "== run via diamondc =="
-  diamondc /opt/build.tcl
-else
-  echo "== diamondc not found, falling back to diamond -t under Xvfb =="
-  xvfb-run -a "$DIA_DIR/bin/lin64/diamond" -t /opt/build.tcl
-fi
+echo "== run diamondc (Synthesis/Map/PAR/Bitgen) =="
+timeout 3000 diamondc /opt/build.tcl
 RC=$?
 
+echo "== generate JEDEC from PAR output =="
+export bindir=/opt/lscc/diamond/3.14/bin/lin64
+export BALI_USE_FOUNDRY_OUTSIDE=
+source "$bindir/diamond_env"
+export LD_LIBRARY_PATH=/opt/lscc/diamond/3.14/ispfpga/bin/lin64:$LD_LIBRARY_PATH
+cd /work/project/impl1
+NCD=$(ls *.ncd 2>/dev/null | head -1)
+if [ -n "$NCD" ]; then
+  /opt/lscc/diamond/3.14/ispfpga/bin/lin64/bitgen -J w "$NCD" 2>&1 | tail -5
+else
+  echo "NO NCD FOUND - PAR output missing"
+fi
+
 echo "== collect artifacts =="
-# JED and reports live under impl1/ (impl directory named in exp2.ldf)
-for f in impl1/*.jed impl1/*.mrp impl1/*.tw1 impl1/*.log impl1/synthesis.log; do
-  [ -f "$f" ] && cp -v "$f" "$OUT/"
+for f in *.jed *.bit *.ncd *.mrp *.tw1 *.log synthesis.log; do
+  [ -f "$f" ] && cp -v "$f" "$OUT/" 2>/dev/null
 done
 
 echo "== done (rc=$RC); jed files =="

@@ -33,6 +33,10 @@ RUN mkdir -p /opt/lscc/diamond/3.14 && cd /opt/lscc/diamond/3.14 && \
   rm -rf /tmp/segs && \
   yum remove -y p7zip-plugins epel-release && yum clean all -y
 
+COPY build.sh /opt/build.sh
+COPY build.tcl /opt/build.tcl
+RUN chmod +x /opt/build.sh
+
 ENV DIA_DIR=/opt/lscc/diamond/3.14
 ENV DIA_BIN=/opt/lscc/diamond/3.14/bin/lin64
 ENV PATH="$DIA_BIN:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"

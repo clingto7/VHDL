@@ -18,5 +18,6 @@
         <Source name="constraints/breathing_led.lpf" type="Logic Preference" type_short="LPF">
             <Options/>
         </Source>
+        <Strategy name="Strategy1" file="Strategy1.sty"/>
     </Implementation>
 </BaliProject>

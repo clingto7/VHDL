@@ -25,6 +25,7 @@ REPO=$(cd "$(dirname "$0")/../.." && pwd)
 docker run --rm --platform linux/amd64 \
   --mac-address="$MAC" \
   -v "$(pwd)/exp2.ldf":/work/project/exp2.ldf:ro \
+  -v "$(pwd)/Strategy1.sty":/work/project/Strategy1.sty:ro \
   -v "$REPO/code/exp2_pwm_breathing_led/src":/work/project/src:ro \
   -v "$REPO/code/exp2_pwm_breathing_led/constraints":/work/project/constraints:ro \
   -v "$(pwd)/license":/work/license:ro \
